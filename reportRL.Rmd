@@ -1,0 +1,230 @@
+---
+title: "NBA predict"
+author: ""
+date: "7/22/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Abstract
+<font size="2">Nowadays, the popularity of the NBA along with the penetration of gambling ideas is rising all around the world. More and more fans prefer to bet on sports gambling. People want to predict the final score difference for each individual game. In addition, there are many either superficial or underlying factors that will affect the game’s result.  The central claim of this article is to establish a reliable model that could predict each game’s result by extracting and analyzing previous games’ outcomes. The major analysis is done by modeling and exploratory data analysis, and is composed of several graphical methods. For the modeling part, ideally the model could predict the games’ score differences by analyzing previous dozens of games’ data sets. The database consists of a single season 2016-2017 on [Goldsheet](http://www.goldsheet.com) website to explore more analysis. Then step by step checking and demonstrating to prove the feasibility and precision of the model.  The model will collect and analyze the data information, like rebounds, teams, assists, turnovers, three points, free throws, blocks, and injury, from Season 2016-2017. The model will predict the future game result in Season 2016-2017 by using each team’s previous game result in this season. This article indicates the idea of linear regression model to find the best fit by comparing the correlation strength of each variable, which include the home-field advantage, teams’ technical statistics, and injury data, to the result of a game. The model final outcomes implies that the game’s result has the most correlation with the home-field advantage and player injury; however, team’s basic technical statistics, included the rebounds, blocks, turnovers, free throws, three points, and assists, have low correlation coefficient with the result to demonstrate that they are not significant to a game’s result.</font>
+
+
+
+# 1. Introduction
+
+<font size="3">Basketball, ranked at the third place on the world's ten most popular ball games, has around 2.2 billion fans all around the world. In all basketball leagues, the NBA, the National Basketball Association, is obviously the most popular basketball game in all countries. 30 teams participate in the NBA each year, and they are divided into two parts, named Western Conference and Eastern conference, and each of them contains 15 teams. Each season is also divided into two separate parts, the regular season, in which each team will play 82 games in total with others, and the playoff. The playoff only contains the best 16 teams, with eight teams each from the Eastern Conference and Western Conference, and they will compete for the final championship. </font>
+
+<font size="3">The NBA's audience is so large that the gambling industry is on the rise, one of the gamble types is point spread betting. Point spread is a bet on the margin of victory in a game. People favor the stronger team or the player will get a certain higher number of points, depending on the gap in ability between the two teams.(1) People bet on whether the stronger team could win by point spread over the weaker team. Sometimes, winners’ profits even reach up to $2,500.(2) Thus, accurately predicting the outcome of a match can be very rewarding，that leads to more research nowadays, especially focusing on the aspect of sports gambling and point spreads prediction. </font>
+
+<font size="3">Although many researchers have worked on predictions of NBA games' score difference or point spreads, most of them focused on the effect of field goals, 3 point scores, rebounds etc. while few considered using statistics of injury. But common sense dictates that the ability of the players on the pitch can make a big difference to the outcome of a match. This research dedicates to find how players’ injuries influence the game score in the end. </font>
+
+<font size="3">This paper is organized in five sections that describe the process and result of the research project. Section 2 describes the data, data cleaning process and merging; Section 3 presents the exploration and analysis;  Section 4 summarizes the work that group did and the observations that were found; Finally, section 5 will give all the references that were used for this project. </font>
+
+
+
+
+# 2. Method
+
+
+## 1. Data Description
+<font size="3">In this study, the database for NBA season 2016-2017 is downloaded as an html document from [Goldsheet](http://www.goldsheet.com) webpage. Unfortunately, this html document includes a lot of messy code with dirty data. Thus, data cleaning is the first crucial step to address with. The first thing to do is to figure out a data frame containing all the information needed for the following research: </font>
+
+
+
+
+
+| Variable |             Description                         |  Unit  | Range  |Average|
+|:--------:|:-----------------------------------------------:|:------:|:------:|:-----:|
+| Location | the place where the game played (Home or visit) | None   | H, V   | None  | 
+| Team 1   | name of one of the teams participating the game | None   | None   | None  |
+| Team 2   | name of the other team participating the game   | None   | None   | None  |
+| Date     | the date that the game happen                   | None   | None   | None  |
+|Score1    | Score of the team1 in the game                  | Number |64 - 149| 105.8 |
+|Score2    | Score of the team2 in the game                  | Number |69 - 139| 105.4 |
+|scorediff |the difference of scores between Team1 and Team2 | Number |-44 - 49| 0.39  |
+|Pointspread| the bet on the margin of victory in a game     | Number |-18 - 21| -0.41 |
+
+
+
+
+```{r echo=FALSE}
+# fileurl <- 'https://www.goldsheet.com/historic/nbalog16.html'
+# gdshtx <- scan(fileurl, what = "", sep = "\n")
+figure <- "Data/nbalog16.html"
+gdshtx <- scan(figure, what = "", sep = "\n")
+
+
+gdshtx <- gsub('&#160;', '', gdshtx, fixed = TRUE)      
+gdshtx <- gsub('</span>', ',', gdshtx, fixed = TRUE)
+gdshtx <- gsub("<[^<>]*>", "", gdshtx)
+y <- strsplit(gdshtx, ',')
+
+
+z <- y[sapply(y, length) == 7]
+zz <- matrix(unlist(z), ncol = 7, byrow = TRUE)
+scores <- strsplit(zz[, 5], "-")
+table(sapply(scores, length))
+scores <- matrix(as.numeric(unlist(scores)), ncol = 2, byrow = TRUE)
+colnames(zz) <- c('Date', 'Team', 'W/L', 'Pointspread', 'Score', 'Location', 'ML') 
+head(zz)
+
+```
+
+
+<font size="3">The first observation is that there are more than two types of locations. Besides "H" which stands for "home game" and "V" which stands for "visitor game", numerical numbers appeared following them. 
+
+```{r echo=FALSE}
+zz <- data.frame(zz)
+head(zz[(zz$Location != 'H') & (zz$Location != 'V'), ], 3)
+
+```
+
+
+Actually, these are the numbers of overtime periods, usually 5 minutes for each overtime period of play according to the [official NBA website](https://official.nba.com/rule-no-5-scoring-and-timing/). In addition, the team name is also one checkpoint. In Goldsheet data, one individual team could be expressed differently. One example is that the team “LA Lakers” has been shown not only as “LA Lakers”, but also as “LA Laker” as a mistake. 
+
+```{r echo=FALSE}
+
+zz[zz$Team == 'LA Laker', ]
+
+```
+
+
+Thus, addressing different formatting names and canceling different versions of one team name is necessary. Furthermore, the raw data presents names of team 1 and team 2 in different formats. For the convenience of future studying, names of team 2 are adjusted to be the same as team 1. Last but not least, the data is internally duplicated. The method used here to deal with this problem is to firstly select Team 1 alphabetically, and secondly Team 2. The result is shown below, which only relies on the arrangement of the team 1 names and team 2 names in alphabetical order. If the team 1 name is “ATLANTA HAWKS”, team 2 will arrange the names alphabetically with “B”, since there are no other teams starting with “A”. If the team 1 name is “BOSTON CELTICS”, which starts with letter “B”, the matching team 2 will start with “B” if there is another team name starting with “B”. Therefore, “ATLANTA HAWKS” will never appear in the list of Team 2 and “WASHINGTON WIZARDS”, which is the last team alphabetically, will never be Team 1. Consequently, all duplicated rows that represent the same game will be abandoned. One of the advantages of this method is that the locations of games are randomly selected, which will be of critical significance in the following study of home-field advantages. </font>
+
+```{r echo=FALSE}
+#
+# Team 1
+#
+
+team1 <- y[sapply(y, length) == 1]
+team1 <- gsub("FINAL 2016-17 NBA HOOP LOGS","", team1, fixed = TRUE)
+index_collection <- grep("^[A-Z]", team1) 
+team_1 <- list()
+number <- list()
+j <- 1
+for(i in c(index_collection)){
+  team_1[j] <- team1[i]
+  number[j] <- team1[i+1]
+  number[j] <- strsplit(number[[j]], " ")[[1]][2] 
+  number[j] <- as.numeric(substring(number[j], 1, regexpr("-", number[j]) - 1))+
+    as.numeric(substring(number[j], regexpr("-", number[j]) + 1))
+  j <- j + 1
+}
+
+team_1 <- as.vector(unlist(rep(team_1, times = number))) 
+#
+# Point spread
+#
+sp <- gsub("'", ".5", zz[, 4])
+sp <- as.numeric(gsub("P", 0, sp))
+
+
+
+x <- data.frame(Date_of_game = zz[,1],
+                Team1 = team_1,
+                Team2 = zz[,2],
+                Pointspread = sp,
+                Score1 = scores[,1],
+                Score2 = scores[,2],
+                scorediff = scores[,1] - scores[,2],
+                Location = zz[,6],
+                stringsAsFactors = FALSE)
+
+x$Location <- substring(x$Location, 1, 1)
+
+x[x$Team2 == "LA Laker", 3] <- gsub("LA Laker", "LA Lakers", 
+                                   x[x$Team2 == "LA Laker", 3])
+
+name1 <- sort(unique(x$Team1))
+name2 <- sort(unique(x$Team2))
+# By visually checking they match!
+for( i in 1:length(name2)) {
+  x[x$Team2 == name2[i], 'Team2'] <- name1[i]
+}
+
+# We changed the format of the date.
+year1 <- '2016'
+year2 <- '2017'
+datemat <- as.data.frame(matrix(unlist(strsplit(x$Date_of_game, '/')), 
+                  ncol = 2, byrow = TRUE))
+listdate <- rep(NA, nrow(x))
+
+listdate[as.numeric(datemat[, 1]) >= 10] <- format(as.Date(paste(year1, 
+        x$Date_of_game[as.numeric(datemat[, 1]) >= 10], sep = '/'), "%Y/%m/%d"))
+listdate[as.numeric(datemat[, 1]) < 10] <- format(as.Date(paste(year2, 
+        x$Date_of_game[as.numeric(datemat[, 1]) < 10], sep = '/'), "%Y/%m/%d"))
+
+x$Date_of_game <- listdate
+
+
+# Delete duplicated data
+teams <- rep(NA, 30)
+x_new <- data.frame()
+for (i in 1:30){
+  teams[i] <- unique(x$Team1)[i]
+  mat <- x[x$Team1 == unique(x$Team1)[i] & !(x$Team2 %in% teams), ]
+  x_new <- rbind(x_new, mat)
+}
+
+row.names(x_new) <- c(1: nrow(x_new)) # 1309 rows
+
+
+t1 <- sort(unique(x_new$Team1))
+t2 <- sort(unique(x_new$Team2))
+xx <- data.frame()
+for (i in c(1:29)){
+  m <- x_new[x_new$Team1 == t1[i], ]
+  for (j in c(1:length(t2))) {
+    n <- m[m$Team2 == t2[j], ]
+    xx <- rbind(xx, n)
+  }
+  t2 <- t2[2:length(t2)]
+}
+
+head(xx)
+
+```
+
+
+Additionally, the data of three points, rebounds, free throws, assists, blocks, turnovers of each game in 2016-2017 is downloaded from the [Basketball Reference website](https://www.basketball-reference.com/). On Basketball Reference website, the per game stats data are organized into separate csv files by team name and season. The key point of cleaning data of variables of games is to select exactly the same games as those that were chosen above. Accordingly, the cleaned data can be built into the model and makes sense. 
+
+
+| Variable |             Description                         |  Unit  | Range  |Average|
+|:--------:|:-----------------------------------------------:|:------:|:------:|:-----:|
+| 3Points  | the sum of 3 pointers made by a team in a game  | Number | 1 - 24 | 9.95  |
+| Rebound  | the sum of rebounds made by a team in a game    | Number | 22 - 67| 43.14 |
+| FreeThrow | the sum of rebounds made by a team in a game   | Number | 3 - 40 | 18.23 |
+| Assist   | the sum of assists made by a team in a game     | Number | 8 - 47 | 22.66 |
+| Block    | the sum of blocks made by a team in a game      | Number | 0 - 15 | 4.64  |
+| Turnover | the sum of turnovers made by a team in a game   | Number | 2 - 27 | 13.36 |
+
+
+
+
+
+
+
+
+| Variable |             Description                         |  Unit  | Range  |Average|
+|:--------:|:-----------------------------------------------:|:------:|:------:|:-----:|
+| Injury   |                                                 | None   | None   | None  |
+| Injury   |                                                 | None   | None   | None  |
+| Injury   |                                                 | None   | None   | None  |
+| Injury   |                                                 | None   | None   | None  |
+
+
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+(1)https://www.thelines.com/betting/point-spread/
+(2)https://towardsdatascience.com/exploratory-data-analysis-8fc1cb20fd15

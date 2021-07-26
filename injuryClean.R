@@ -73,6 +73,6 @@ injuryback <- injuryback[, c(1, 2, 4, 3)]
 names(injuryback) <- c('Team', 'Player', 'GoneDate', 'BackDate')
 head(injuryback)
 
-write.csv(injuryback, 'injurylist.csv')
+write.csv(injuryback, 'Data/injurylist.csv')
 
 

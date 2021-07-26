@@ -28,7 +28,7 @@
 # fileurl <- 'https://www.goldsheet.com/historic/nbalog16.html'
 # x <- scan(fileurl, what = "", sep = "\n")
 
-figure <- "nbalog16.html"
+figure <- "Data/nbalog16.html"
 x <- scan(figure, what = "", sep = "\n")
 
 
@@ -156,7 +156,7 @@ for (i in c(1:29)){
 nrow(xx)
 row.names(xx) <- c(1:1309)
 
-write.csv(xx, "NBA 2017.csv")
+write.csv(xx, "Data/NBA 2017.csv")
 
 
 

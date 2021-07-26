@@ -3,9 +3,9 @@ title: 'Prediction of future NBA games’ point difference: A statistical modeli
 author: "Ruize Han (Jack), Tianrui Hu (Riley),  Shunying Shi (Jenny), Sijian Tao (Raymond)"
 date: "7/25/2021"
 output:
-  pdf_document: default
   html_document:
     df_print: paged
+  pdf_document: default
   word_document: default
 ---
 
@@ -101,6 +101,7 @@ main="Differences of scorediff between home and visit", sub = 'Figure 1: Compari
 
 abline(v = 0, col = 'red')
 ```
+
 After the data cleaning process mentioned above, the total numbers of home games, visitor games and natural games are 644, 642 and 3 respectively. By plotting the density of differences of 30 teams’ score differences between home games and visitor games, it can be easily seen that the mean is greater than 0. It is shown in Figure 1, which implies that teams tend to perform better at home than play as a visitor. To calculate the mean average score differences based on locations, it is interesting to notice that home-field advantage seems to give the home team higher scores by 3.07 points. According to Marshall(2007), he also reviewed the significance of home-field advantage, and calculated the average score difference between home and away at about 3.5 points, which is quite similar. He even finally concluded that home teams have 60% confidence to win the game. 
 
 __Game Statistics :__
@@ -454,6 +455,8 @@ Lastly, the injury data that was used to build the model only contains the minut
 (1)https://www.thelines.com/betting/point-spread/<br>
 
 (2)https://towardsdatascience.com/exploratory-data-analysis-8fc1cb20fd15
+
+Project Code: https://github.com/hupidan98/NBA16pred
 
 
 # Conclusion
